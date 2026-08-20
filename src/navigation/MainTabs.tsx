@@ -1,8 +1,8 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
-import { AccountScreen } from "@/screens/account/AccountScreen";
 import { DashboardScreen } from "@/screens/dashboard/DashboardScreen";
+import { InvoicesScreen } from "@/screens/invoices/InvoicesScreen";
 import { PatientsScreen } from "@/screens/patients/PatientsScreen";
 import { VisitsScreen } from "@/screens/visits/VisitsScreen";
 
@@ -10,7 +10,7 @@ export type MainTabParamList = {
   Dashboard: undefined;
   Patients: undefined;
   Visits: undefined;
-  Account: undefined;
+  Invoices: undefined;
 };
 
 const ACTIVE_COLOR = "#059669";
@@ -56,10 +56,10 @@ export function MainTabs() {
         }}
       />
       <Tab.Screen
-        name="Account"
-        component={AccountScreen}
+        name="Invoices"
+        component={InvoicesScreen}
         options={{
-          tabBarIcon: ({ color, size }) => <FontAwesome color={color} name="user-circle-o" size={size} />,
+          tabBarIcon: ({ color, size }) => <FontAwesome color={color} name="file-text-o" size={size} />,
         }}
       />
     </Tab.Navigator>

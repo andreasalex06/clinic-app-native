@@ -83,6 +83,7 @@ function formatVisitTime(value: string) {
 
 export function DashboardScreen() {
   const insets = useSafeAreaInsets();
+  const logout = useAuthStore((state) => state.logout);
   const token = useAuthStore((state) => state.token);
   const user = useAuthStore((state) => state.user);
   const [summary, setSummary] = useState<DashboardSummary>(EMPTY_SUMMARY);
@@ -165,18 +166,24 @@ export function DashboardScreen() {
             Dashboard
           </Text>
 
-          <View className="min-w-0 flex-row items-center gap-2 rounded-full bg-white/15 py-1.5 pl-2 pr-3">
-            <View className="h-8 w-8 items-center justify-center rounded-full bg-white/20">
-              <FontAwesome color="#ecfdf5" name="user" size={14} />
+          <View className="min-w-0 flex-row items-center gap-2">
+            <View className="min-w-0 flex-row items-center gap-2 rounded-full bg-white/15 py-1.5 pl-2 pr-3">
+              <View className="h-8 w-8 items-center justify-center rounded-full bg-white/20">
+                <FontAwesome color="#ecfdf5" name="user" size={14} />
+              </View>
+              <View className="min-w-0">
+                <Text className="max-w-24 text-[11px] leading-4 text-primary-50" numberOfLines={1} style={styles.textBold}>
+                  {user?.name ?? "Profile"}
+                </Text>
+                <Text className="text-[10px] leading-3 text-primary-100" style={styles.textRegular}>
+                  Profile
+                </Text>
+              </View>
             </View>
-            <View className="min-w-0">
-              <Text className="max-w-28 text-[11px] leading-4 text-primary-50" numberOfLines={1} style={styles.textBold}>
-                {user?.name ?? "Profile"}
-              </Text>
-              <Text className="text-[10px] leading-3 text-primary-100" style={styles.textRegular}>
-                Profile
-              </Text>
-            </View>
+
+            <Pressable className="h-11 w-11 items-center justify-center rounded-full bg-white/15 active:opacity-80" onPress={logout}>
+              <FontAwesome color="#ecfdf5" name="sign-out" size={18} />
+            </Pressable>
           </View>
         </View>
       </View>
