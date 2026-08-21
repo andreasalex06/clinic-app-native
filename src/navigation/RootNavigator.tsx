@@ -3,14 +3,20 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useEffect } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 
+import { ConsultationFormScreen } from "@/screens/consultations/ConsultationFormScreen";
 import { LoginScreen } from "@/screens/login/LoginScreen";
+import { Visit } from "@/screens/visits/types";
 import { useAuthStore } from "@/stores/authStore";
 
-import { MainTabs } from "./MainTabs";
+import { MainTabParamList, MainTabs } from "./MainTabs";
+import { NavigatorScreenParams } from "@react-navigation/native";
 
 export type RootStackParamList = {
   Login: undefined;
-  MainTabs: undefined;
+  MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
+  ConsultationForm: {
+    visit: Visit;
+  };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -37,7 +43,10 @@ export function RootNavigator() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {token ? (
-          <Stack.Screen name="MainTabs" component={MainTabs} />
+          <>
+            <Stack.Screen name="MainTabs" component={MainTabs} />
+            <Stack.Screen name="ConsultationForm" component={ConsultationFormScreen} />
+          </>
         ) : (
           <Stack.Screen name="Login" component={LoginScreen} />
         )}
