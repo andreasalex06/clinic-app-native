@@ -9,7 +9,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { apiGet } from "@/api/client";
 import { useAuthStore } from "@/stores/authStore";
@@ -74,6 +74,8 @@ const CARD_STYLES: Record<SummaryCard["tone"], { icon: string }> = {
   rose: { icon: "#be123c" },
 };
 
+const PRIMARY_600 = "#059669";
+
 function formatVisitTime(value: string) {
   return new Date(value).toLocaleTimeString([], {
     hour: "2-digit",
@@ -82,7 +84,6 @@ function formatVisitTime(value: string) {
 }
 
 export function DashboardScreen() {
-  const insets = useSafeAreaInsets();
   const logout = useAuthStore((state) => state.logout);
   const token = useAuthStore((state) => state.token);
   const user = useAuthStore((state) => state.user);
@@ -160,33 +161,35 @@ export function DashboardScreen() {
       contentContainerStyle={styles.content}
       refreshControl={<RefreshControl refreshing={refreshing} tintColor="#059669" onRefresh={handleRefresh} />}
     >
-      <View className="mb-5 bg-primary-600 px-5 pb-4" style={{ paddingTop: insets.top + 14 }}>
-        <View className="flex-row items-center justify-between gap-3">
-          <Text className="text-[22px] leading-7 text-white" style={styles.textBold}>
-            Dashboard
-          </Text>
+      <SafeAreaView edges={["top"]} style={styles.headerSafeArea}>
+        <View className="min-h-[76px] justify-center px-5 pb-4 pt-3">
+          <View className="flex-row items-center justify-between gap-3">
+            <Text className="text-[22px] leading-7 text-white" style={styles.textBold}>
+              Dashboard
+            </Text>
 
-          <View className="min-w-0 flex-row items-center gap-2">
-            <View className="min-w-0 flex-row items-center gap-2 rounded-full bg-white/15 py-1.5 pl-2 pr-3">
-              <View className="h-8 w-8 items-center justify-center rounded-full bg-white/20">
-                <FontAwesome color="#ecfdf5" name="user" size={14} />
+            <View className="min-w-0 flex-row items-center gap-2">
+              <View className="min-w-0 flex-row items-center gap-2 rounded-full bg-white/15 py-1.5 pl-2 pr-3">
+                <View className="h-8 w-8 items-center justify-center rounded-full bg-white/20">
+                  <FontAwesome color="#ecfdf5" name="user" size={14} />
+                </View>
+                <View className="min-w-0">
+                  <Text className="max-w-24 text-[11px] leading-4 text-primary-50" numberOfLines={1} style={styles.textBold}>
+                    {user?.name ?? "Profile"}
+                  </Text>
+                  <Text className="text-[10px] leading-3 text-primary-100" style={styles.textRegular}>
+                    Profile
+                  </Text>
+                </View>
               </View>
-              <View className="min-w-0">
-                <Text className="max-w-24 text-[11px] leading-4 text-primary-50" numberOfLines={1} style={styles.textBold}>
-                  {user?.name ?? "Profile"}
-                </Text>
-                <Text className="text-[10px] leading-3 text-primary-100" style={styles.textRegular}>
-                  Profile
-                </Text>
-              </View>
+
+              <Pressable className="h-11 w-11 items-center justify-center rounded-full bg-white/15 active:opacity-80" onPress={logout}>
+                <FontAwesome color="#ecfdf5" name="sign-out" size={18} />
+              </Pressable>
             </View>
-
-            <Pressable className="h-11 w-11 items-center justify-center rounded-full bg-white/15 active:opacity-80" onPress={logout}>
-              <FontAwesome color="#ecfdf5" name="sign-out" size={18} />
-            </Pressable>
           </View>
         </View>
-      </View>
+      </SafeAreaView>
 
       <View className="px-5">
         {error ? (
@@ -295,6 +298,10 @@ export function DashboardScreen() {
 const styles = StyleSheet.create({
   content: {
     paddingBottom: 28,
+  },
+  headerSafeArea: {
+    backgroundColor: PRIMARY_600,
+    marginBottom: 20,
   },
   textBold: {
     fontFamily: "Poppins_700Bold",
