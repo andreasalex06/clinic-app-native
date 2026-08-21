@@ -1,3 +1,4 @@
+import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import { Platform } from "react-native";
 
 const DEFAULT_API_URL = Platform.select({
@@ -7,37 +8,48 @@ const DEFAULT_API_URL = Platform.select({
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || DEFAULT_API_URL;
 
+const apiClient = axios.create({
+  baseURL: API_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
 type RequestOptions = {
   method?: "GET" | "POST" | "PATCH" | "DELETE";
   body?: object;
   token?: string | null;
 };
 
+function getErrorMessage(error: unknown) {
+  if (axios.isAxiosError(error)) {
+    const axiosError = error as AxiosError<{ message?: string }>;
+
+    return axiosError.response?.data?.message || axiosError.message || "Terjadi kesalahan";
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "Terjadi kesalahan";
+}
+
 async function request<T>(path: string, options: RequestOptions = {}) {
-  const headers: Record<string, string> = {};
-
-  if (options.body) {
-    headers["Content-Type"] = "application/json";
-  }
-
-  if (options.token) {
-    headers.Authorization = `Bearer ${options.token}`;
-  }
-
-  const response = await fetch(`${API_URL}${path}`, {
+  const config: AxiosRequestConfig = {
     method: options.method || "GET",
-    headers,
-    body: options.body ? JSON.stringify(options.body) : undefined,
-  });
+    url: path,
+    data: options.body,
+    headers: options.token ? { Authorization: `Bearer ${options.token}` } : undefined,
+  };
 
-  const text = await response.text();
-  const data = text ? JSON.parse(text) : null;
+  try {
+    const response = await apiClient.request<T>(config);
 
-  if (!response.ok) {
-    throw new Error(data?.message || "Terjadi kesalahan");
+    return response.data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
   }
-
-  return data as T;
 }
 
 export function apiGet<T = unknown>(path: string, token?: string | null) {
