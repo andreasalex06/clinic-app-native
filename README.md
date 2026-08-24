@@ -1,56 +1,136 @@
-# Welcome to your Expo app 👋
+# ClinicApp Mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Mobile app untuk Clinic App. Stack: Expo, React Native, React Navigation, NativeWind v5, Zustand, Axios, dan TypeScript.
 
-## Get started
+## Requirements
 
-1. Install dependencies
+- Node.js
+- npm
+- Expo Go atau Android Emulator
+- Backend Clinic App berjalan di `http://localhost:5050`
 
-   ```bash
-   npm install
-   ```
+## Setup
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+1. Install dependencies:
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Start Expo:
 
-### Other setup steps
+```bash
+npm run start
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+Atau langsung buka Android emulator:
 
-## Learn more
+```bash
+npm run android
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+## Backend URL
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Default API URL sudah disiapkan untuk Android emulator:
 
-## Join the community
+```txt
+http://10.0.2.2:5050/api
+```
 
-Join our community of developers creating universal apps.
+`10.0.2.2` adalah alamat khusus Android emulator untuk mengakses `localhost` laptop.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Jika menjalankan app dari Expo Go di HP fisik, gunakan IP laptop:
+
+```powershell
+$env:EXPO_PUBLIC_API_URL="http://YOUR_LAPTOP_IP:5050/api"
+npm run start
+```
+
+Contoh:
+
+```powershell
+$env:EXPO_PUBLIC_API_URL="http://192.168.1.10:5050/api"
+npm run start
+```
+
+Pastikan HP dan laptop berada di jaringan Wi-Fi yang sama.
+
+## Seed Login
+
+Gunakan akun dari backend seed:
+
+```txt
+admin@clinic.test  / password123
+staff@clinic.test  / password123
+doctor@clinic.test / password123
+```
+
+## Main Features
+
+- Login
+- Dashboard
+- Patients CRUD
+- Visit/check-in antrean
+- Consultation form
+- Invoice list, detail, payment status
+
+## Useful Scripts
+
+```bash
+npm run start
+npm run android
+npm run ios
+npm run web
+npx tsc --noEmit
+npx expo export --platform android
+```
+
+## Project Notes
+
+- Navigation menggunakan React Navigation, bukan Expo Router.
+- State auth menggunakan Zustand.
+- Token disimpan melalui storage helper di `src/auth/storage.ts`.
+- API request menggunakan Axios wrapper di `src/api/client.ts`.
+- Styling menggunakan NativeWind v5 dan font Poppins.
+
+## Troubleshooting
+
+### Network Error
+
+Pastikan backend sedang berjalan:
+
+```bash
+npm run dev
+```
+
+Backend harus bisa diakses di:
+
+```txt
+http://localhost:5050/api/test
+```
+
+Untuk Android emulator, app memakai:
+
+```txt
+http://10.0.2.2:5050/api
+```
+
+Untuk HP fisik, gunakan `EXPO_PUBLIC_API_URL` dengan IP laptop.
+
+### App masih menampilkan cache lama
+
+Restart Expo dengan clear cache:
+
+```bash
+npx expo start --clear
+```
+
+### Login gagal
+
+Pastikan backend sudah menjalankan seed:
+
+```bash
+npm run prisma:seed
+```
+
+Lalu gunakan akun di bagian `Seed Login`.
