@@ -9,6 +9,18 @@ export type Patient = {
   address: string;
 };
 
+export type PaginationMeta = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
+export type PatientListResponse = {
+  data: Patient[];
+  meta: PaginationMeta;
+};
+
 export type PatientForm = {
   name: string;
   phone: string;
