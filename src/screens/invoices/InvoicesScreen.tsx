@@ -1,7 +1,7 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -17,8 +17,27 @@ type RootNavigation = NativeStackNavigationProp<RootStackParamList>;
 const PRIMARY_600 = "#059669";
 const PAGE_LIMIT = 10;
 
+function appendUniqueInvoices(currentInvoices: InvoiceListItem[], nextInvoices: InvoiceListItem[]) {
+  const invoiceIds = new Set(currentInvoices.map((invoice) => invoice.id));
+  const uniqueNextInvoices = nextInvoices.filter((invoice) => !invoiceIds.has(invoice.id));
+
+  return [...currentInvoices, ...uniqueNextInvoices];
+}
+
+function buildInvoiceQuery(searchTerm: string, page: number) {
+  const queryParams = [`page=${page}`, `limit=${PAGE_LIMIT}`];
+
+  if (searchTerm.trim()) {
+    queryParams.push(`search=${encodeURIComponent(searchTerm.trim())}`);
+  }
+
+  return queryParams.join("&");
+}
+
 export function InvoicesScreen() {
   const navigation = useNavigation<RootNavigation>();
+  const hasLoadedInvoices = useRef(false);
+  const loadingMoreRef = useRef(false);
   const token = useAuthStore((state) => state.token);
   const [invoices, setInvoices] = useState<InvoiceListItem[]>([]);
   const [search, setSearch] = useState("");
@@ -36,20 +55,26 @@ export function InvoicesScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
 
-  const fetchInvoices = useCallback(async (nextPage = 1, mode: "replace" | "append" = "replace") => {
+  const loadInvoicesPage = useCallback(async (searchTerm: string, nextPage = 1, mode: "replace" | "append" = "replace") => {
     if (!token) return;
 
-    const searchQuery = debouncedSearch ? `&search=${encodeURIComponent(debouncedSearch)}` : "";
-    const response = await apiGet<InvoiceListResponse>(`/invoices?page=${nextPage}&limit=${PAGE_LIMIT}${searchQuery}`, token);
+    setError("");
 
-    setInvoices((currentInvoices) => (mode === "append" ? [...currentInvoices, ...response.data] : response.data));
+    const query = buildInvoiceQuery(searchTerm, nextPage);
+    const response = await apiGet<InvoiceListResponse>(`/invoices?${query}`, token);
+
+    setInvoices((currentInvoices) => {
+      if (mode === "replace") return response.data;
+
+      return appendUniqueInvoices(currentInvoices, response.data);
+    });
     setPage(response.meta.page);
     setTotalInvoices(response.meta.total);
-    if (!debouncedSearch) {
+    if (!searchTerm.trim()) {
       setGlobalSummary(response.summary);
     }
     setHasNextPage(response.meta.page < response.meta.totalPages);
-  }, [debouncedSearch, token]);
+  }, [token]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -60,31 +85,42 @@ export function InvoicesScreen() {
   }, [search]);
 
   useEffect(() => {
-    async function loadInvoices() {
+    async function loadInitialData() {
       try {
-        if (initialLoading) {
-          setInitialLoading(true);
-        } else {
-          setSearching(true);
-        }
-        setError("");
-        await fetchInvoices();
+        setInitialLoading(true);
+        await loadInvoicesPage("", 1, "replace");
+        hasLoadedInvoices.current = true;
       } catch (invoiceError) {
         setError(invoiceError instanceof Error ? invoiceError.message : "Gagal memuat invoice");
       } finally {
         setInitialLoading(false);
+      }
+    }
+
+    void loadInitialData();
+  }, [loadInvoicesPage]);
+
+  useEffect(() => {
+    if (!hasLoadedInvoices.current) return;
+
+    async function searchInvoices() {
+      try {
+        setSearching(true);
+        await loadInvoicesPage(debouncedSearch, 1, "replace");
+      } catch (invoiceError) {
+        setError(invoiceError instanceof Error ? invoiceError.message : "Gagal mencari invoice");
+      } finally {
         setSearching(false);
       }
     }
 
-    void loadInvoices();
-  }, [fetchInvoices]);
+    void searchInvoices();
+  }, [debouncedSearch, loadInvoicesPage]);
 
   async function handleRefresh() {
     try {
       setRefreshing(true);
-      setError("");
-      await fetchInvoices();
+      await loadInvoicesPage(debouncedSearch, 1, "replace");
     } catch (invoiceError) {
       setError(invoiceError instanceof Error ? invoiceError.message : "Gagal memuat invoice");
     } finally {
@@ -93,15 +129,16 @@ export function InvoicesScreen() {
   }
 
   async function handleLoadMore() {
-    if (initialLoading || searching || loadingMore || refreshing || !hasNextPage) return;
+    if (initialLoading || searching || loadingMore || loadingMoreRef.current || refreshing || !hasNextPage) return;
 
     try {
+      loadingMoreRef.current = true;
       setLoadingMore(true);
-      setError("");
-      await fetchInvoices(page + 1, "append");
+      await loadInvoicesPage(debouncedSearch, page + 1, "append");
     } catch (invoiceError) {
       setError(invoiceError instanceof Error ? invoiceError.message : "Gagal memuat invoice");
     } finally {
+      loadingMoreRef.current = false;
       setLoadingMore(false);
     }
   }
