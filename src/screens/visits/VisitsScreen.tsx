@@ -199,7 +199,7 @@ export function VisitsScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} tintColor="#059669" onRefresh={handleRefresh} />}
       >
         <View className="rounded-3xl bg-primary-600 p-5">
-          <View className="flex-row items-center justify-between gap-4">
+          <View>
             <View className="flex-1">
               <Text className="text-[20px] leading-7 text-white" style={styles.textBold}>
                 Antrean Hari Ini
@@ -207,9 +207,6 @@ export function VisitsScreen() {
               <Text className="mt-2 text-sm leading-6 text-primary-50" style={styles.textRegular}>
                 Pilih pasien dan dokter untuk membuat antrean kunjungan.
               </Text>
-            </View>
-            <View className="h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
-              <FontAwesome color="#ecfdf5" name="stethoscope" size={22} />
             </View>
           </View>
 
