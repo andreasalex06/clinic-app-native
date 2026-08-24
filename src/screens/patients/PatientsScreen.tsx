@@ -2,9 +2,9 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  FlatList,
   Pressable,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -16,22 +16,45 @@ import { apiGet, apiPatch, apiPost } from "@/api/client";
 import { useAuthStore } from "@/stores/authStore";
 import { PatientCard } from "./components/PatientCard";
 import { PatientFormModal } from "./components/PatientFormModal";
-import { EMPTY_FORM, Patient, PatientForm } from "./types";
+import { EMPTY_FORM, Patient, PatientForm, PatientListResponse } from "./types";
 
 const PRIMARY_600 = "#059669";
+const PAGE_LIMIT = 10;
 
 function isValidDateInput(value: string) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(new Date(value).getTime());
 }
 
+function appendUniquePatients(currentPatients: Patient[], nextPatients: Patient[]) {
+  const patientIds = new Set(currentPatients.map((patient) => patient.id));
+  const uniqueNextPatients = nextPatients.filter((patient) => !patientIds.has(patient.id));
+
+  return [...currentPatients, ...uniqueNextPatients];
+}
+
+function buildPatientQuery(searchTerm: string, page: number) {
+  const queryParams = [`page=${page}`, `limit=${PAGE_LIMIT}`];
+
+  if (searchTerm.trim()) {
+    queryParams.push(`search=${encodeURIComponent(searchTerm.trim())}`);
+  }
+
+  return queryParams.join("&");
+}
+
 export function PatientsScreen() {
   const hasLoadedPatients = useRef(false);
+  const loadingMoreRef = useRef(false);
   const token = useAuthStore((state) => state.token);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPatients, setTotalPatients] = useState(0);
+  const [hasNextPage, setHasNextPage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -40,15 +63,22 @@ export function PatientsScreen() {
   const [form, setForm] = useState<PatientForm>(EMPTY_FORM);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
 
-  const fetchPatients = useCallback(async (searchTerm: string) => {
+  const loadPatientsPage = useCallback(async (searchTerm: string, nextPage = 1, mode: "replace" | "append" = "replace") => {
     if (!token) return;
 
     setError("");
 
-    const query = searchTerm.trim() ? `?search=${encodeURIComponent(searchTerm.trim())}` : "";
-    const response = await apiGet<{ data: Patient[] }>(`/patients${query}`, token);
+    const query = buildPatientQuery(searchTerm, nextPage);
+    const response = await apiGet<PatientListResponse>(`/patients?${query}`, token);
 
-    setPatients(response.data);
+    setPatients((currentPatients) => {
+      if (mode === "replace") return response.data;
+
+      return appendUniquePatients(currentPatients, response.data);
+    });
+    setPage(response.meta.page);
+    setTotalPatients(response.meta.total);
+    setHasNextPage(response.meta.page < response.meta.totalPages);
   }, [token]);
 
   useEffect(() => {
@@ -63,7 +93,7 @@ export function PatientsScreen() {
     async function loadInitialData() {
       try {
         setLoading(true);
-        await fetchPatients("");
+        await loadPatientsPage("", 1, "replace");
         hasLoadedPatients.current = true;
       } catch (patientError) {
         setError(patientError instanceof Error ? patientError.message : "Gagal memuat data pasien");
@@ -73,7 +103,7 @@ export function PatientsScreen() {
     }
 
     void loadInitialData();
-  }, [fetchPatients]);
+  }, [loadPatientsPage]);
 
   useEffect(() => {
     if (!hasLoadedPatients.current) return;
@@ -81,7 +111,7 @@ export function PatientsScreen() {
     async function searchPatients() {
       try {
         setSearching(true);
-        await fetchPatients(debouncedSearch);
+        await loadPatientsPage(debouncedSearch, 1, "replace");
       } catch (patientError) {
         setError(patientError instanceof Error ? patientError.message : "Gagal mencari data pasien");
       } finally {
@@ -90,16 +120,31 @@ export function PatientsScreen() {
     }
 
     void searchPatients();
-  }, [debouncedSearch, fetchPatients]);
+  }, [debouncedSearch, loadPatientsPage]);
 
   async function handleRefresh() {
     try {
       setRefreshing(true);
-      await fetchPatients(debouncedSearch);
+      await loadPatientsPage(debouncedSearch, 1, "replace");
     } catch (patientError) {
       setError(patientError instanceof Error ? patientError.message : "Gagal memuat data pasien");
     } finally {
       setRefreshing(false);
+    }
+  }
+
+  async function handleLoadMore() {
+    if (loading || searching || loadingMore || loadingMoreRef.current || refreshing || !hasNextPage) return;
+
+    try {
+      loadingMoreRef.current = true;
+      setLoadingMore(true);
+      await loadPatientsPage(debouncedSearch, page + 1, "append");
+    } catch (patientError) {
+      setError(patientError instanceof Error ? patientError.message : "Gagal memuat data pasien berikutnya");
+    } finally {
+      loadingMoreRef.current = false;
+      setLoadingMore(false);
     }
   }
 
@@ -177,8 +222,7 @@ export function PatientsScreen() {
       setForm(EMPTY_FORM);
       setSearch("");
 
-      const response = await apiGet<{ data: Patient[] }>("/patients", token);
-      setPatients(response.data);
+      await loadPatientsPage("", 1, "replace");
     } catch (patientError) {
       setFormError(patientError instanceof Error ? patientError.message : "Gagal menyimpan pasien");
     } finally {
@@ -192,6 +236,29 @@ export function PatientsScreen() {
         <ActivityIndicator color="#059669" />
         <Text className="mt-4 text-sm text-slate-500" style={styles.textSemiBold}>
           Memuat pasien...
+        </Text>
+      </View>
+    );
+  }
+
+  function renderEmpty() {
+    return (
+      <View className="rounded-3xl border border-dashed border-primary-200 bg-primary-50/60 p-6">
+        <Text className="text-center text-sm leading-5 text-slate-500" style={styles.textSemiBold}>
+          Belum ada data pasien.
+        </Text>
+      </View>
+    );
+  }
+
+  function renderFooter() {
+    if (!loadingMore) return <View className="h-2" />;
+
+    return (
+      <View className="items-center py-4">
+        <ActivityIndicator color="#059669" />
+        <Text className="mt-2 text-xs text-slate-500" style={styles.textRegular}>
+          Memuat pasien berikutnya...
         </Text>
       </View>
     );
@@ -215,12 +282,7 @@ export function PatientsScreen() {
         </View>
       </SafeAreaView>
 
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-        refreshControl={<RefreshControl refreshing={refreshing} tintColor="#059669" onRefresh={handleRefresh} />}
-      >
+      <View style={styles.topContent}>
         <View className="mb-5 rounded-3xl bg-primary-600 p-5">
           <View className="flex-row items-start justify-between gap-4">
             <View className="flex-1">
@@ -241,7 +303,7 @@ export function PatientsScreen() {
               Total pasien
             </Text>
             <Text className="text-base text-white" style={styles.textBold}>
-              {patients.length}
+              {totalPatients}
             </Text>
           </View>
         </View>
@@ -264,7 +326,7 @@ export function PatientsScreen() {
             <View className="flex-row items-center gap-2">
               {searching ? <ActivityIndicator color="#059669" size="small" /> : null}
               <Text className="text-xs text-slate-500" style={styles.textRegular}>
-                {searching ? "Mencari pasien..." : `${patients.length} pasien ditemukan`}
+                {searching ? "Mencari pasien..." : `${totalPatients} pasien ditemukan`}
               </Text>
             </View>
             <Pressable className="rounded-full bg-primary-50 px-4 py-2 active:opacity-80" onPress={handleRefresh}>
@@ -287,21 +349,21 @@ export function PatientsScreen() {
             value={search}
           />
         </View>
+      </View>
 
-        {patients.length === 0 ? (
-          <View className="rounded-3xl border border-dashed border-primary-200 bg-primary-50/60 p-6">
-            <Text className="text-center text-sm leading-5 text-slate-500" style={styles.textSemiBold}>
-              Belum ada data pasien.
-            </Text>
-          </View>
-        ) : (
-          <View className="gap-3">
-            {patients.map((patient) => (
-              <PatientCard key={patient.id} patient={patient} onEdit={openEditForm} />
-            ))}
-          </View>
-        )}
-      </ScrollView>
+      <FlatList
+        className="flex-1"
+        contentContainerStyle={styles.listContent}
+        data={patients}
+        keyExtractor={(patient) => patient.id}
+        keyboardShouldPersistTaps="handled"
+        ListEmptyComponent={renderEmpty}
+        ListFooterComponent={renderFooter}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.4}
+        refreshControl={<RefreshControl refreshing={refreshing} tintColor="#059669" onRefresh={handleRefresh} />}
+        renderItem={({ item }) => <PatientCard patient={item} onEdit={openEditForm} />}
+      />
 
       <PatientFormModal
         form={form}
@@ -318,8 +380,12 @@ export function PatientsScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: {
+  listContent: {
+    gap: 12,
     paddingBottom: 28,
+    paddingHorizontal: 20,
+  },
+  topContent: {
     paddingHorizontal: 20,
     paddingTop: 20,
   },
