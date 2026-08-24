@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 
 import { ConsultationFormScreen } from "@/screens/consultations/ConsultationFormScreen";
+import { InvoiceDetailScreen } from "@/screens/invoices/InvoiceDetailScreen";
 import { LoginScreen } from "@/screens/login/LoginScreen";
 import { Visit } from "@/screens/visits/types";
 import { useAuthStore } from "@/stores/authStore";
@@ -16,6 +17,9 @@ export type RootStackParamList = {
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   ConsultationForm: {
     visit: Visit;
+  };
+  InvoiceDetail: {
+    visitId: string;
   };
 };
 
@@ -46,6 +50,7 @@ export function RootNavigator() {
           <>
             <Stack.Screen name="MainTabs" component={MainTabs} />
             <Stack.Screen name="ConsultationForm" component={ConsultationFormScreen} />
+            <Stack.Screen name="InvoiceDetail" component={InvoiceDetailScreen} />
           </>
         ) : (
           <Stack.Screen name="Login" component={LoginScreen} />
