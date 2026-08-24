@@ -24,11 +24,11 @@ function appendUniqueInvoices(currentInvoices: InvoiceListItem[], nextInvoices: 
   return [...currentInvoices, ...uniqueNextInvoices];
 }
 
-function buildInvoiceQuery(searchTerm: string, page: number) {
+function buildInvoiceQuery(keyword: string, page: number) {
   const queryParams = [`page=${page}`, `limit=${PAGE_LIMIT}`];
 
-  if (searchTerm.trim()) {
-    queryParams.push(`search=${encodeURIComponent(searchTerm.trim())}`);
+  if (keyword.trim()) {
+    queryParams.push(`search=${encodeURIComponent(keyword.trim())}`);
   }
 
   return queryParams.join("&");
@@ -55,12 +55,12 @@ export function InvoicesScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
 
-  const loadInvoicesPage = useCallback(async (searchTerm: string, nextPage = 1, mode: "replace" | "append" = "replace") => {
+  const loadInvoicesPage = useCallback(async (keyword: string, nextPage = 1, mode: "replace" | "append" = "replace") => {
     if (!token) return;
 
     setError("");
 
-    const query = buildInvoiceQuery(searchTerm, nextPage);
+    const query = buildInvoiceQuery(keyword, nextPage);
     const response = await apiGet<InvoiceListResponse>(`/invoices?${query}`, token);
 
     setInvoices((currentInvoices) => {
@@ -70,7 +70,7 @@ export function InvoicesScreen() {
     });
     setPage(response.meta.page);
     setTotalInvoices(response.meta.total);
-    if (!searchTerm.trim()) {
+    if (!keyword.trim()) {
       setGlobalSummary(response.summary);
     }
     setHasNextPage(response.meta.page < response.meta.totalPages);
