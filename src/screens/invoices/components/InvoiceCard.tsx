@@ -12,7 +12,7 @@ export function InvoiceCard({ invoice, onPress }: InvoiceCardProps) {
   const paid = invoice.status === "PAID";
 
   return (
-    <Pressable className="rounded-3xl border border-slate-100 bg-white p-4 active:opacity-80" onPress={() => onPress(invoice)} style={styles.card}>
+    <Pressable className="rounded-2xl border border-slate-200 bg-white p-4 active:opacity-80" onPress={() => onPress(invoice)} style={styles.card}>
       <View className="flex-row items-start justify-between gap-3">
         <View className="flex-1">
           <Text className="text-xs text-primary-700" style={styles.textRegular}>
@@ -50,11 +50,11 @@ export function InvoiceCard({ invoice, onPress }: InvoiceCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    elevation: 5,
+    elevation: 2,
     shadowColor: "#0f172a",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.14,
-    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
   },
   textBold: {
     fontFamily: "Poppins_700Bold",

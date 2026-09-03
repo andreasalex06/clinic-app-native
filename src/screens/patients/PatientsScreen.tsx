@@ -271,7 +271,7 @@ export function PatientsScreen() {
           <View className="flex-row items-center justify-between gap-3">
             <View className="flex-1">
               <Text className="text-[22px] leading-7 text-white" style={styles.textBold}>
-                Patients
+                Pasien
               </Text>
             </View>
 
@@ -283,7 +283,7 @@ export function PatientsScreen() {
       </SafeAreaView>
 
       <View style={styles.topContent}>
-        <View className="mb-5 rounded-3xl bg-primary-600 p-5">
+        <View className="mb-5 rounded-2xl bg-primary-600 p-5" style={styles.banner}>
           <View className="flex-row items-start justify-between gap-4">
             <View className="flex-1">
               <Text className="text-[20px] leading-7 text-white" style={styles.textBold}>
@@ -380,6 +380,13 @@ export function PatientsScreen() {
 }
 
 const styles = StyleSheet.create({
+  banner: {
+    elevation: 2,
+    shadowColor: "#064e3b",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+  },
   listContent: {
     gap: 12,
     paddingBottom: 28,

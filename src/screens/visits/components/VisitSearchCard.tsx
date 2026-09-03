@@ -30,7 +30,7 @@ export function VisitSearchCard<T extends SearchItem>({
   onSelect,
 }: VisitSearchCardProps<T>) {
   return (
-    <View className="rounded-3xl bg-white p-4">
+    <View className="rounded-2xl border border-slate-200 bg-white p-4" style={styles.card}>
       <Text className="text-base text-slate-950" style={styles.textBold}>
         {title}
       </Text>
@@ -87,6 +87,13 @@ export function VisitSearchCard<T extends SearchItem>({
 }
 
 const styles = StyleSheet.create({
+  card: {
+    elevation: 2,
+    shadowColor: "#0f172a",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+  },
   textBold: {
     fontFamily: "Poppins_700Bold",
     includeFontPadding: true,

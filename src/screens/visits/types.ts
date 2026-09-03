@@ -17,6 +17,8 @@ export type VisitDoctor = {
 export type Visit = {
   id: string;
   visitNumber: string;
+  queueNumber: number;
+  queueDate: string;
   status: VisitStatus;
   checkInTime: string;
   patient: VisitPatient;

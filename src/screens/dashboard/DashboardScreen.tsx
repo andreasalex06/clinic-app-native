@@ -1,5 +1,7 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useCallback, useEffect, useState } from "react";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import {
   ActivityIndicator,
   Pressable,
@@ -12,6 +14,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { apiGet } from "@/api/client";
+import { formatQueueCode } from "@/lib/queue";
+import { RootStackParamList } from "@/navigation/RootNavigator";
 import { useAuthStore } from "@/stores/authStore";
 
 type DashboardSummary = {
@@ -27,6 +31,8 @@ type VisitStatus = "WAITING" | "IN_CONSULTATION" | "COMPLETED" | "CANCELLED";
 type TodayVisit = {
   id: string;
   visitNumber: string;
+  queueNumber: number;
+  queueDate: string;
   checkInTime: string;
   status: VisitStatus;
   patient: {
@@ -75,6 +81,7 @@ const CARD_STYLES: Record<SummaryCard["tone"], { icon: string }> = {
 };
 
 const PRIMARY_600 = "#059669";
+type RootNavigation = NativeStackNavigationProp<RootStackParamList>;
 
 function formatVisitTime(value: string) {
   return new Date(value).toLocaleTimeString([], {
@@ -84,6 +91,7 @@ function formatVisitTime(value: string) {
 }
 
 export function DashboardScreen() {
+  const navigation = useNavigation<RootNavigation>();
   const logout = useAuthStore((state) => state.logout);
   const token = useAuthStore((state) => state.token);
   const user = useAuthStore((state) => state.user);
@@ -135,10 +143,10 @@ export function DashboardScreen() {
 
   const cards: SummaryCard[] = [
     { label: "Visit", value: summary.todayVisits, icon: "users", tone: "primary" },
-    { label: "Wait", value: summary.waiting, icon: "clock-o", tone: "amber" },
+    { label: "Tunggu", value: summary.waiting, icon: "clock-o", tone: "amber" },
     { label: "Konsul", value: summary.inConsultation, icon: "stethoscope", tone: "sky" },
-    { label: "Done", value: summary.completed, icon: "check-circle-o", tone: "emerald" },
-    { label: "Unpaid", value: summary.unpaidInvoices, icon: "file-text-o", tone: "rose" },
+    { label: "Selesai", value: summary.completed, icon: "check-circle-o", tone: "emerald" },
+    { label: "Belum", value: summary.unpaidInvoices, icon: "file-text-o", tone: "rose" },
   ];
 
   const displayedVisits = visits.slice(0, 5);
@@ -208,17 +216,27 @@ export function DashboardScreen() {
           </View>
         ) : null}
 
-        <View className="mb-7 rounded-3xl bg-primary-600 p-4">
-          <Text className="mb-3 text-[13px] leading-5 text-primary-50" style={styles.textRegular}>
-            Ringkasan konsultasi hari ini.
-          </Text>
+        <View className="mb-7 rounded-2xl border border-slate-200 bg-white p-4" style={styles.card}>
+          <View className="mb-4 flex-row items-center justify-between">
+            <View>
+              <Text className="text-base leading-6 text-slate-950" style={styles.textBold}>
+                Ringkasan hari ini
+              </Text>
+              <Text className="mt-1 text-xs text-slate-500" style={styles.textRegular}>
+                Aktivitas klinik secara langsung
+              </Text>
+            </View>
+            <View className="h-9 w-9 items-center justify-center rounded-xl bg-primary-50">
+              <FontAwesome color="#047857" name="bar-chart" size={15} />
+            </View>
+          </View>
 
           <View className="flex-row gap-1.5">
             {cards.map((card) => {
               const toneStyle = CARD_STYLES[card.tone];
 
               return (
-                <View key={card.label} className="h-[110px] flex-1 items-center justify-center gap-0.5 rounded-2xl bg-slate-50 px-1 py-2">
+                <View key={card.label} className="h-[104px] flex-1 items-center justify-center gap-0.5 rounded-xl border border-slate-100 bg-slate-50 px-1 py-2">
                   <View className="h-10 w-10 items-center justify-center">
                     <FontAwesome color={toneStyle.icon} name={card.icon} size={20} />
                   </View>
@@ -232,6 +250,23 @@ export function DashboardScreen() {
               );
             })}
           </View>
+        </View>
+
+        <View className="mb-7 flex-row gap-3">
+          <Pressable className="flex-1 flex-row items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 active:opacity-80" onPress={() => navigation.navigate("Finance")}>
+            <View className="min-w-0 flex-1">
+              <Text className="text-sm text-slate-950" style={styles.textBold}>Finance</Text>
+              <Text className="mt-1 text-[11px] text-slate-500" style={styles.textRegular}>Lihat pendapatan</Text>
+            </View>
+            <FontAwesome color="#047857" name="line-chart" size={17} />
+          </Pressable>
+          <Pressable className="flex-1 flex-row items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 active:opacity-80" onPress={() => navigation.navigate("Invoices")}>
+            <View className="min-w-0 flex-1">
+              <Text className="text-sm text-slate-950" style={styles.textBold}>Tagihan</Text>
+              <Text className="mt-1 text-[11px] text-slate-500" style={styles.textRegular}>Kelola invoice</Text>
+            </View>
+            <FontAwesome color="#047857" name="file-text-o" size={17} />
+          </Pressable>
         </View>
 
         <View className="mb-3 flex-row items-end justify-between gap-4">
@@ -259,14 +294,14 @@ export function DashboardScreen() {
         ) : (
           <View className="gap-3">
             {displayedVisits.map((visit) => (
-              <View key={visit.id} className="rounded-3xl bg-primary-700 p-4">
+              <View key={visit.id} className="rounded-2xl border border-slate-200 bg-white p-4" style={styles.card}>
                 <View className="flex-row items-start justify-between gap-3">
                   <View className="flex-1">
-                    <Text className="text-sm leading-5 text-white" style={styles.textBold}>
+                    <Text className="text-sm leading-5 text-slate-950" style={styles.textBold}>
                       {visit.patient.name}
                     </Text>
-                    <Text className="mt-1 text-xs leading-5 text-primary-100" style={styles.textRegular}>
-                      {visit.visitNumber} - {visit.doctor.name}
+                    <Text className="mt-1 text-xs leading-5 text-slate-500" style={styles.textRegular}>
+                      {formatQueueCode(visit.queueNumber)} - {visit.visitNumber} - {visit.doctor.name}
                     </Text>
                   </View>
                   <View className={`rounded-full px-3 py-1 ${STATUS_STYLES[visit.status]}`}>
@@ -275,14 +310,14 @@ export function DashboardScreen() {
                     </Text>
                   </View>
                 </View>
-                <View className="mt-4 flex-row items-center justify-between rounded-2xl bg-white/10 px-3 py-3">
+                <View className="mt-4 flex-row items-center justify-between rounded-xl bg-slate-50 px-3 py-3">
                   <View className="flex-row items-center gap-2">
-                    <FontAwesome color="#d1fae5" name="clock-o" size={14} />
-                    <Text className="text-xs text-primary-50" style={styles.textSemiBold}>
+                    <FontAwesome color="#64748b" name="clock-o" size={14} />
+                    <Text className="text-xs text-slate-600" style={styles.textSemiBold}>
                       {formatVisitTime(visit.checkInTime)}
                     </Text>
                   </View>
-                  <Text className="text-xs text-primary-100" style={styles.textRegular}>
+                  <Text className="text-xs text-slate-400" style={styles.textRegular}>
                     Hari ini
                   </Text>
                 </View>
@@ -296,6 +331,13 @@ export function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
+  card: {
+    elevation: 2,
+    shadowColor: "#0f172a",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+  },
   content: {
     paddingBottom: 28,
   },

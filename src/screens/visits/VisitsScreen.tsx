@@ -180,7 +180,7 @@ export function VisitsScreen() {
         <View className="min-h-[76px] flex-row items-center justify-between gap-3 px-5 pb-4 pt-3">
           <View>
             <Text className="text-[22px] leading-7 text-white" style={styles.textBold}>
-              Visits
+              Antrean
             </Text>
             <Text className="mt-1 text-xs text-primary-50" style={styles.textRegular}>
               Registrasi antrean pasien
@@ -198,7 +198,7 @@ export function VisitsScreen() {
         keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={refreshing} tintColor="#059669" onRefresh={handleRefresh} />}
       >
-        <View className="rounded-3xl bg-primary-600 p-5">
+        <View className="rounded-2xl bg-primary-600 p-5" style={styles.banner}>
           <View>
             <View className="flex-1">
               <Text className="text-[20px] leading-7 text-white" style={styles.textBold}>
@@ -296,6 +296,13 @@ export function VisitsScreen() {
 }
 
 const styles = StyleSheet.create({
+  banner: {
+    elevation: 2,
+    shadowColor: "#064e3b",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+  },
   content: {
     gap: 16,
     paddingBottom: 28,

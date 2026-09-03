@@ -1,6 +1,7 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { formatQueueCode } from "@/lib/queue";
 import { Visit, VISIT_STATUS_LABEL } from "../types";
 
 type VisitQueueCardProps = {
@@ -35,16 +36,19 @@ export function VisitQueueCard({ visit, updating, onStart, onCancel, onContinue 
   const canContinue = visit.status === "IN_CONSULTATION";
 
   return (
-    <View className="rounded-3xl bg-primary-700 p-4">
+    <View className="rounded-2xl border border-slate-200 bg-white p-4" style={styles.card}>
       <View className="flex-row items-start justify-between gap-3">
         <View className="flex-1">
-          <Text className="text-xs text-primary-100" style={styles.textRegular}>
+          <Text className="text-xs text-primary-700" style={styles.textSemiBold}>
+            {formatQueueCode(visit.queueNumber)}
+          </Text>
+          <Text className="mt-1 text-xs text-slate-500" style={styles.textRegular}>
             {visit.visitNumber}
           </Text>
-          <Text className="mt-1 text-base text-white" style={styles.textBold}>
+          <Text className="mt-1 text-base text-slate-950" style={styles.textBold}>
             {visit.patient.name}
           </Text>
-          <Text className="mt-1 text-xs text-primary-50" style={styles.textRegular}>
+          <Text className="mt-1 text-xs text-slate-500" style={styles.textRegular}>
             Dr. {visit.doctor.name} - {visit.doctor.specialization}
           </Text>
         </View>
@@ -77,7 +81,7 @@ export function VisitQueueCard({ visit, updating, onStart, onCancel, onContinue 
             style={styles.cancelButton}
           >
             <FontAwesome color="#ecfdf5" name="times" size={12} />
-            <Text className="text-primary-50" style={styles.textBold}>
+            <Text className="text-white" style={styles.textBold}>
               Batalkan
             </Text>
           </Pressable>
@@ -108,6 +112,17 @@ const styles = StyleSheet.create({
   textRegular: {
     fontFamily: "Poppins_400Regular",
     includeFontPadding: true,
+  },
+  textSemiBold: {
+    fontFamily: "Poppins_600SemiBold",
+    includeFontPadding: true,
+  },
+  card: {
+    elevation: 2,
+    shadowColor: "#0f172a",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
   },
   startButton: {
     backgroundColor: "#ffffff",

@@ -7,7 +7,7 @@ Mobile app untuk Clinic App. Stack: Expo, React Native, React Navigation, Native
 - Node.js
 - npm
 - Expo Go atau Android Emulator
-- Backend Clinic App berjalan di `http://localhost:5050`
+- Backend dashboard terbaru berjalan di `http://localhost:5050`
 
 ## Setup
 
@@ -30,6 +30,12 @@ npm run android
 ```
 
 ## Backend URL
+
+Backend yang dipakai app ini adalah dashboard backend terbaru:
+
+```txt
+C:\Users\andre\Documents\dumbways-andreasalex\clinic-app-mobileuserfirst\dashboard\backend
+```
 
 Default API URL sudah disiapkan untuk Android emulator:
 
@@ -72,6 +78,8 @@ doctor@clinic.test / password123
 - Patients CRUD
 - Visit/check-in antrean
 - Consultation form
+- Pharmacy order tracking
+- Finance summary
 - Invoice list, detail, payment status
 
 ## Useful Scripts
