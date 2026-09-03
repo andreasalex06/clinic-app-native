@@ -212,7 +212,7 @@ export function PharmacyScreen() {
         ListFooterComponent={loadingMore ? <View className="items-center py-4"><ActivityIndicator color="#059669" /><Text className="mt-2 text-xs text-slate-500" style={styles.textRegular}>Memuat order berikutnya...</Text></View> : <View className="h-2" />}
         ListHeaderComponent={
           <>
-            <View className="rounded-2xl bg-primary-600 p-5" style={styles.banner}>
+            <View className="mb-6 rounded-2xl bg-primary-600 p-5" style={styles.banner}>
               <View className="flex-row items-start justify-between gap-4">
                 <View className="min-w-0 flex-1">
                   <Text className="text-[20px] leading-7 text-white" style={styles.textBold}>
@@ -255,7 +255,7 @@ export function PharmacyScreen() {
               </View>
             ) : null}
 
-            <View className="rounded-2xl border border-slate-200 bg-white p-3" style={styles.card}>
+            <View className="mb-2 rounded-2xl border border-slate-200 bg-white p-3" style={styles.card}>
               <View className="mb-3 flex-row items-center justify-between gap-4 px-1">
                 <View className="min-w-0 flex-1">
                   <Text className="text-[18px] leading-6 text-slate-950" style={styles.textBold}>
