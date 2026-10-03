@@ -34,13 +34,14 @@ const STATUS_CLASS = {
 export function VisitQueueCard({ visit, updating, onStart, onCancel, onContinue }: VisitQueueCardProps) {
   const canManage = visit.status === "WAITING";
   const canContinue = visit.status === "IN_CONSULTATION";
+  const isStartDisabled = updating || !visit.canStart;
 
   return (
     <View className="rounded-2xl border border-slate-200 bg-white p-4" style={styles.card}>
       <View className="flex-row items-start justify-between gap-3">
         <View className="flex-1">
           <Text className="text-xs text-primary-700" style={styles.textSemiBold}>
-            {formatQueueCode(visit.queueNumber)}
+            {formatQueueCode(visit.queueNumber, visit.doctor.queueIndex)}
           </Text>
           <Text className="mt-1 text-xs text-slate-500" style={styles.textRegular}>
             {visit.visitNumber}
@@ -64,12 +65,12 @@ export function VisitQueueCard({ visit, updating, onStart, onCancel, onContinue 
         <View className="mt-4 flex-row gap-3">
           <Pressable
             className="flex-1 flex-row items-center justify-center gap-2 rounded-2xl px-4 py-3"
-            disabled={updating}
+            disabled={isStartDisabled}
             onPress={() => onStart(visit)}
-            style={styles.startButton}
+            style={[styles.startButton, isStartDisabled && styles.startButtonDisabled]}
           >
-            <FontAwesome color="#047857" name="play" size={12} />
-            <Text className="text-primary-700" style={styles.textBold}>
+            <FontAwesome color={isStartDisabled ? "#94a3b8" : "#047857"} name="play" size={12} />
+            <Text style={[styles.textBold, isStartDisabled ? styles.startTextDisabled : styles.startText]}>
               Mulai
             </Text>
           </Pressable>
@@ -86,6 +87,12 @@ export function VisitQueueCard({ visit, updating, onStart, onCancel, onContinue 
             </Text>
           </Pressable>
         </View>
+      ) : null}
+
+      {canManage && !visit.canStart ? (
+        <Text className="mt-2 text-center text-xs text-slate-500" style={styles.textRegular}>
+          Selesaikan atau batalkan antrean sebelumnya.
+        </Text>
       ) : null}
 
       {canContinue ? (
@@ -126,6 +133,15 @@ const styles = StyleSheet.create({
   },
   startButton: {
     backgroundColor: "#ffffff",
+  },
+  startButtonDisabled: {
+    backgroundColor: "#f1f5f9",
+  },
+  startText: {
+    color: "#047857",
+  },
+  startTextDisabled: {
+    color: "#94a3b8",
   },
   cancelButton: {
     backgroundColor: "#dc2626",

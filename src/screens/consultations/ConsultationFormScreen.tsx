@@ -54,9 +54,10 @@ export function ConsultationFormScreen({ navigation, route }: ConsultationFormSc
       return {
         ...medicine,
         quantity: selectedMedicine.quantity,
+        instructions: selectedMedicine.instructions,
       };
     })
-    .filter((medicine): medicine is Medicine & { quantity: number } => Boolean(medicine));
+    .filter((medicine): medicine is Medicine & { quantity: number; instructions: string } => Boolean(medicine));
 
   const loadMasterData = useCallback(async () => {
     if (!token) return;
@@ -118,7 +119,7 @@ export function ConsultationFormScreen({ navigation, route }: ConsultationFormSc
         return currentMedicines.filter((medicine) => medicine.medicineId !== medicineId);
       }
 
-      return [...currentMedicines, { medicineId, quantity: 1 }];
+      return [...currentMedicines, { medicineId, quantity: 1, instructions: "" }];
     });
   }
 
@@ -135,10 +136,23 @@ export function ConsultationFormScreen({ navigation, route }: ConsultationFormSc
     );
   }
 
+  function changeMedicineInstructions(medicineId: string, instructions: string) {
+    setSelectedMedicines((currentMedicines) =>
+      currentMedicines.map((medicine) => (
+        medicine.medicineId === medicineId
+          ? { ...medicine, instructions }
+          : medicine
+      )),
+    );
+  }
+
   function validateForm() {
     if (complaint.trim().length < 5) return "Keluhan minimal 5 karakter.";
     if (!selectedDiagnosisId) return "Pilih diagnosis.";
     if (selectedTreatmentIds.length === 0) return "Pilih minimal satu tindakan.";
+    if (selectedMedicines.some((medicine) => medicine.instructions.trim().length < 3)) {
+      return "Catatan aturan pakai setiap obat minimal 3 karakter.";
+    }
 
     return "";
   }
@@ -269,7 +283,7 @@ export function ConsultationFormScreen({ navigation, route }: ConsultationFormSc
               <PickerSummary
                 subtitle={
                   selectedMedicineDetails.length
-                    ? selectedMedicineDetails.map((medicine) => `${medicine.name} x${medicine.quantity}`).join(", ")
+                    ? selectedMedicineDetails.map((medicine) => `${medicine.name} x${medicine.quantity} - ${medicine.instructions}`).join(", ")
                     : "Obat boleh dikosongkan"
                 }
                 title={selectedMedicineDetails.length ? `${selectedMedicineDetails.length} obat dipilih` : "Tambah obat"}
@@ -319,6 +333,7 @@ export function ConsultationFormScreen({ navigation, route }: ConsultationFormSc
         medicines={medicines}
         selectedMedicines={selectedMedicines}
         visible={medicineModalVisible}
+        onChangeInstructions={changeMedicineInstructions}
         onChangeQuantity={changeMedicineQuantity}
         onClose={() => setMedicineModalVisible(false)}
         onToggleMedicine={toggleMedicine}

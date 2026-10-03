@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
 import { apiGet, apiPost } from "@/api/client";
+import { disconnectDashboardSocket } from "@/api/socket";
 import {
   deleteStoredToken,
   deleteStoredUser,
@@ -74,6 +75,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   async logout() {
     await Promise.all([deleteStoredToken(), deleteStoredUser()]);
+    disconnectDashboardSocket();
 
     set({
       token: null,

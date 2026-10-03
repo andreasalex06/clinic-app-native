@@ -1,5 +1,5 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { apiGet, apiPatch, apiPost } from "@/api/client";
+import { useDashboardSocketEvent } from "@/hooks/useDashboardSocketEvent";
 import { RootStackParamList } from "@/navigation/RootNavigator";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -82,21 +83,35 @@ export function VisitsScreen() {
     return () => clearTimeout(debounceTimer);
   }, [doctorSearch]);
 
-  useEffect(() => {
-    async function loadVisits() {
-      try {
-        setLoading(true);
-        setError("");
-        await fetchVisitData();
-      } catch (visitError) {
-        setError(visitError instanceof Error ? visitError.message : "Gagal memuat data antrean");
-      } finally {
-        setLoading(false);
-      }
-    }
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
 
-    void loadVisits();
-  }, [fetchVisitData]);
+      async function loadVisits() {
+        try {
+          setLoading(true);
+          setError("");
+          await fetchVisitData();
+        } catch (visitError) {
+          if (isActive) {
+            setError(visitError instanceof Error ? visitError.message : "Gagal memuat data antrean");
+          }
+        } finally {
+          if (isActive) {
+            setLoading(false);
+          }
+        }
+      }
+
+      void loadVisits();
+
+      return () => {
+        isActive = false;
+      };
+    }, [fetchVisitData]),
+  );
+
+  useDashboardSocketEvent("queue:changed", fetchVisitData);
 
   async function handleRefresh() {
     try {

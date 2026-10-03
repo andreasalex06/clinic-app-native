@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { apiGet } from "@/api/client";
+import { useDashboardSocketEvent } from "@/hooks/useDashboardSocketEvent";
 import { formatQueueCode } from "@/lib/queue";
 import { RootStackParamList } from "@/navigation/RootNavigator";
 import { useAuthStore } from "@/stores/authStore";
@@ -39,6 +40,7 @@ type TodayVisit = {
     name: string;
   };
   doctor: {
+    queueIndex: number;
     name: string;
   };
 };
@@ -129,6 +131,9 @@ export function DashboardScreen() {
 
     void loadInitialData();
   }, [loadDashboard]);
+
+  useDashboardSocketEvent("queue:changed", loadDashboard);
+  useDashboardSocketEvent("pharmacy:changed", loadDashboard);
 
   async function handleRefresh() {
     try {
@@ -301,7 +306,7 @@ export function DashboardScreen() {
                       {visit.patient.name}
                     </Text>
                     <Text className="mt-1 text-xs leading-5 text-slate-500" style={styles.textRegular}>
-                      {formatQueueCode(visit.queueNumber)} - {visit.visitNumber} - {visit.doctor.name}
+                      {formatQueueCode(visit.queueNumber, visit.doctor.queueIndex)} - {visit.visitNumber} - {visit.doctor.name}
                     </Text>
                   </View>
                   <View className={`rounded-full px-3 py-1 ${STATUS_STYLES[visit.status]}`}>

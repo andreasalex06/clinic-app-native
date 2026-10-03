@@ -4,6 +4,7 @@ import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, Sty
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { apiGet, apiPatch } from "@/api/client";
+import { useDashboardSocketEvent } from "@/hooks/useDashboardSocketEvent";
 import { formatQueueCode } from "@/lib/queue";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -46,7 +47,9 @@ function getMedicineSummary(order: PharmacyOrder) {
     return "Tidak ada obat";
   }
 
-  return medicines.map((item) => `${item.medicine.name} x${item.quantity}`).join(", ");
+  return medicines
+    .map((item) => `${item.medicine.name} x${item.quantity}${item.instructions ? ` - ${item.instructions}` : ""}`)
+    .join("; ");
 }
 
 export function PharmacyScreen() {
@@ -92,6 +95,8 @@ export function PharmacyScreen() {
 
     void loadInitialOrders();
   }, [loadOrders]);
+
+  useDashboardSocketEvent("pharmacy:changed", () => loadOrders(1, "replace"));
 
   async function handleRefresh() {
     try {

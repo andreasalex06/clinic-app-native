@@ -9,6 +9,7 @@ export type VisitPatient = {
 
 export type VisitDoctor = {
   id: string;
+  queueIndex: number;
   name: string;
   specialization: string;
   phone: string;
@@ -20,6 +21,7 @@ export type Visit = {
   queueNumber: number;
   queueDate: string;
   status: VisitStatus;
+  canStart: boolean;
   checkInTime: string;
   patient: VisitPatient;
   doctor: VisitDoctor;

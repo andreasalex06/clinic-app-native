@@ -6,7 +6,7 @@ const DEFAULT_API_URL = Platform.select({
   default: "http://localhost:5050/api",
 });
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || DEFAULT_API_URL;
+export const API_URL = process.env.EXPO_PUBLIC_API_URL || DEFAULT_API_URL;
 
 const apiClient = axios.create({
   baseURL: API_URL,

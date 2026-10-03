@@ -20,6 +20,7 @@ export type Medicine = {
 export type SelectedMedicine = {
   medicineId: string;
   quantity: number;
+  instructions: string;
 };
 
 export function formatCurrency(value: number) {

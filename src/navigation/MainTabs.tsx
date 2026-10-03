@@ -1,7 +1,7 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { BottomTabBarProps, createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useEffect } from "react";
-import { Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
 
@@ -63,13 +63,13 @@ function AnimatedTabItem({ icon, label, active, onPress, onLongPress, accessibil
       onLongPress={onLongPress}
       onPress={onPress}
     >
-      <Animated.View className="absolute inset-x-1 h-[54px] rounded-2xl" style={[activeStyle, { backgroundColor: ACTIVE_BACKGROUND }]} />
+      <Animated.View className="absolute inset-x-1 h-[54px] rounded-lg" style={[activeStyle, { backgroundColor: ACTIVE_BACKGROUND }]} />
       <View className="z-10 w-full items-center justify-center">
         <Animated.View style={iconStyle}>
-          <FontAwesome color={active ? ACTIVE_COLOR : INACTIVE_COLOR} name={icon} size={18} />
+          <FontAwesome color={active ? ACTIVE_COLOR : INACTIVE_COLOR} name={icon} size={20} />
         </Animated.View>
         <Animated.Text
-          className="mt-1 w-full px-0.5 text-center text-[9px] leading-[12px]"
+          className="mt-1 w-full px-0.5 text-center text-[11px] leading-[16px]"
           numberOfLines={1}
           adjustsFontSizeToFit
           minimumFontScale={0.7}
@@ -91,13 +91,10 @@ const ICONS: Record<keyof MainTabParamList, TabIconName> = {
 
 function ModernTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
-  const bottomInset = Math.max(insets.bottom, 8);
-  const barWidth = Math.min(width - 24, 440);
 
   return (
-    <View style={[styles.safeArea, { paddingBottom: bottomInset }]}>
-      <View style={[styles.tabBar, { width: barWidth }]}>
+    <View style={[styles.safeArea, { paddingBottom: insets.bottom, paddingLeft: insets.left, paddingRight: insets.right }]}>
+      <View style={styles.tabBar}>
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
           const active = state.index === index;
@@ -140,6 +137,6 @@ export function MainTabs() {
 
 const styles = StyleSheet.create({
   label: { fontFamily: "Poppins_600SemiBold" },
-  safeArea: { alignItems: "center", backgroundColor: "transparent" },
-  tabBar: { alignItems: "center", backgroundColor: BAR_COLOR, borderRadius: 18, elevation: 12, flexDirection: "row", height: 68, paddingHorizontal: 6, shadowColor: "#0f172a", shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.2, shadowRadius: 12 },
+  safeArea: { alignSelf: "stretch", backgroundColor: BAR_COLOR },
+  tabBar: { alignItems: "center", flexDirection: "row", height: 68, paddingHorizontal: 6 },
 });

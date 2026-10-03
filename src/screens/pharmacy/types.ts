@@ -27,6 +27,7 @@ export type PharmacyOrder = {
       medicines: Array<{
         id: string;
         quantity: number;
+        instructions?: string | null;
         medicine: {
           id: string;
           name: string;
